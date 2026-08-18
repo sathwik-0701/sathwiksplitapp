@@ -342,7 +342,10 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     user.otpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendPasswordResetEmail(normalizedEmail, otp);
+        const emailSent = await sendPasswordResetEmail(normalizedEmail, otp);
+    if (!emailSent) {
+      console.error(`❌ forgotPassword: OTP email to ${normalizedEmail} FAILED to send. Check BREVO_API_KEY / sender verification in Render env vars.`);
+    }
 
     res.status(200).json({
       success: true,
