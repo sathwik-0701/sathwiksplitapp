@@ -14,6 +14,11 @@ export const sendBrevoEmail = async (options: SendEmailOptions): Promise<boolean
   const smtpUser = process.env.BREVO_SMTP_USER || 'ad0a0d001@smtp-brevo.com';
   const senderEmail = process.env.BREVO_SENDER_EMAIL || 'sathwikredd7701@gmail.com';
 
+  if (!apiKey) {
+    console.error('❌ BREVO_API_KEY is not set in the environment. Cannot send email to', options.to);
+    return false;
+  }
+
   if (options.otp) {
     console.log('\n================================================================');
     console.log(`🔑 VERIFICATION OTP CODE FOR ${options.to}: [ ${options.otp} ]`);
@@ -21,35 +26,33 @@ export const sendBrevoEmail = async (options: SendEmailOptions): Promise<boolean
   }
 
   // 1. Send via Brevo SMTP Relay
-  if (apiKey) {
-    try {
-      const transporter = nodemailer.createTransport({
-        host: 'smtp-relay.brevo.com',
-        port: 587,
-        secure: false,
-        auth: {
-          user: smtpUser,
-          pass: apiKey,
-        },
-      });
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'smtp-relay.brevo.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: smtpUser,
+        pass: apiKey,
+      },
+    });
 
-      const info = await transporter.sendMail({
-        from: `"Split Expense App" <${senderEmail}>`,
-        to: options.to,
-        subject: options.subject,
-        html: options.htmlContent,
-        text: options.textContent,
-      });
+    const info = await transporter.sendMail({
+      from: `"Split Expense App" <${senderEmail}>`,
+      to: options.to,
+      subject: options.subject,
+      html: options.htmlContent,
+      text: options.textContent,
+    });
 
-      console.log(`✉️ REAL EMAIL SENT via Brevo SMTP to ${options.to}! MessageId: ${info.messageId}`);
-      return true;
-    } catch (error: any) {
-      console.error('⚠️ Brevo SMTP Send Error:', error.message);
-    }
+    console.log(`✉️ REAL EMAIL SENT via Brevo SMTP to ${options.to}! MessageId: ${info.messageId}`);
+    return true;
+  } catch (error: any) {
+    console.error('⚠️ Brevo SMTP Send Error:', error.message);
   }
 
-  // 2. Try Brevo REST API v3 if key starts with xkeysib-
-  if (apiKey && apiKey.startsWith('xkeysib-')) {
+  // 2. Fallback: try Brevo REST API v3 if key looks like an API key
+  if (apiKey.startsWith('xkeysib-')) {
     try {
       const response = await axios.post(
         'https://api.brevo.com/v3/smtp/email',
@@ -75,7 +78,8 @@ export const sendBrevoEmail = async (options: SendEmailOptions): Promise<boolean
     }
   }
 
-  return true;
+  console.error(`❌ Failed to send email to ${options.to} via both Brevo SMTP and REST API.`);
+  return false;
 };
 
 export const sendOTPEmail = async (email: string, otp: string, name: string): Promise<boolean> => {
