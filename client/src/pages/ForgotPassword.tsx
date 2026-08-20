@@ -16,10 +16,14 @@ export const ForgotPassword: React.FC = () => {
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setSubmitting(true);
     try {
       const res = await axios.post('/api/auth/forgot-password', { email });
       setMessage(res.data.message);
+      if (res.data?.email) {
+        setEmail(res.data.email);
+      }
       setStep('reset');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to request password reset');
@@ -31,6 +35,7 @@ export const ForgotPassword: React.FC = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setSubmitting(true);
     try {
       const res = await axios.post('/api/auth/reset-password', { email, otp, newPassword });
@@ -50,19 +55,37 @@ export const ForgotPassword: React.FC = () => {
           <div className="mx-auto w-12 h-12 bg-rose-500/10 text-rose-400 rounded-2xl flex items-center justify-center mb-3">
             <KeyRound className="w-6 h-6" />
           </div>
+          <span className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-2">
+            {step === 'request' ? 'Step 1 of 2: Request OTP' : 'Step 2 of 2: Reset Password'}
+          </span>
           <h2 className="text-2xl font-bold text-white">Reset Password</h2>
           <p className="text-slate-400 text-xs mt-1">
-            {step === 'request' ? 'Enter your registered email' : 'Enter OTP and new password'}
+            {step === 'request'
+              ? 'Enter your registered email or username below'
+              : (
+                <span>
+                  Enter 6-digit OTP sent to <strong className="text-emerald-400 font-semibold">{email}</strong>
+                </span>
+              )}
           </p>
         </div>
 
-        {message && <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-3 rounded-xl text-xs flex items-center"><CheckCircle2 className="w-4 h-4 mr-2" />{message}</div>}
-        {error && <div className="bg-rose-500/10 border border-rose-500/20 text-rose-300 p-3 rounded-xl text-xs">{error}</div>}
+        {message && (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 p-3 rounded-xl text-xs flex items-center">
+            <CheckCircle2 className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>{message}</span>
+          </div>
+        )}
+        {error && (
+          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-300 p-3 rounded-xl text-xs">
+            {error}
+          </div>
+        )}
 
         {step === 'request' ? (
           <form onSubmit={handleRequestOtp} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Email</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Email or Username</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
                 <input
@@ -81,14 +104,14 @@ export const ForgotPassword: React.FC = () => {
               disabled={submitting}
               className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl flex justify-center items-center space-x-2 transition-all cursor-pointer"
             >
-              <span>{submitting ? 'Sending Code...' : 'Send Reset Code'}</span>
+              <span>{submitting ? 'Sending OTP Code...' : 'Send Reset OTP Code'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         ) : (
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">6-Digit OTP</label>
+              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">6-Digit OTP Code</label>
               <input
                 type="text"
                 maxLength={6}
@@ -96,7 +119,7 @@ export const ForgotPassword: React.FC = () => {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 placeholder="123456"
-                className="w-full bg-slate-950 border border-slate-800 text-center font-mono text-xl text-emerald-400 py-2.5 rounded-xl focus:border-emerald-500 focus:outline-none"
+                className="w-full bg-slate-950 border border-slate-800 text-center font-mono text-xl tracking-widest text-emerald-400 py-2.5 rounded-xl focus:border-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -120,8 +143,22 @@ export const ForgotPassword: React.FC = () => {
               disabled={submitting}
               className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl flex justify-center items-center space-x-2 transition-all cursor-pointer"
             >
-              <span>{submitting ? 'Updating...' : 'Update Password'}</span>
+              <span>{submitting ? 'Updating Password...' : 'Update Password'}</span>
             </button>
+
+            <div className="text-center pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep('request');
+                  setError('');
+                  setMessage('');
+                }}
+                className="text-xs text-slate-400 hover:text-emerald-400 underline transition-colors cursor-pointer"
+              >
+                ← Wrong email or resend code? Click to change
+              </button>
+            </div>
           </form>
         )}
 
