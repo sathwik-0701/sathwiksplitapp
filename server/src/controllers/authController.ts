@@ -62,11 +62,11 @@ const verifyOtpSchema = z.object({
 });
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().min(1, 'Email or username is required'),
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().min(1, 'Email or username is required'),
   otp: z.string().length(6, 'OTP must be 6 digits'),
   newPassword: z.string().min(6, 'New password must be at least 6 characters'),
 });
