@@ -232,6 +232,15 @@ export const Navbar: React.FC = () => {
                 <span>Admin</span>
               </Link>
             )}
+
+            <button
+              onClick={handleLogout}
+              className="flex flex-col items-center space-y-1 p-1 rounded-lg text-[10px] font-medium text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
           </>
         ) : (
           <>
@@ -272,6 +281,15 @@ export const Navbar: React.FC = () => {
               <LayoutDashboard className="w-5 h-5" />
               <span>User Mode</span>
             </Link>
+
+            <button
+              onClick={handleLogout}
+              className="flex flex-col items-center space-y-1 p-1 rounded-lg text-[10px] font-medium text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
           </>
         )}
       </nav>
